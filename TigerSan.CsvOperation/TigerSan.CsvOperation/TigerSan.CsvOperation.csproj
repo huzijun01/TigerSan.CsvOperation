@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>A C# class library for reading, writing, serialization and deserialization of CSV.</Description>
+    <Authors>TigerSan</Authors>
+    <Title>$(AssemblyName)</Title>
+    <Version>1.0.0</Version>
+    <Copyright>bilibili 真的虎子君</Copyright>
+    <PackageIcon>logo.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://space.bilibili.com/34323512</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/huzijun01/TigerSan.CsvOperation</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Files\LICENSE">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </Resource>
+    <Resource Include="Files\logo.png">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </Resource>
+    <Resource Include="Files\README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Files\logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="Files\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

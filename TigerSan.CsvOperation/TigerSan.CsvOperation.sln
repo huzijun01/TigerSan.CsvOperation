@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11205.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TigerSan.Test", "TigerSan.Test\TigerSan.Test\TigerSan.Test.csproj", "{5ABA231F-AD42-6965-D64B-E5E4B6AF28D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TigerSan.CsvOperation", "TigerSan.CsvOperation\TigerSan.CsvOperation.csproj", "{C009CD7A-20B3-4DC2-B9BC-BDF50E6F30D5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5ABA231F-AD42-6965-D64B-E5E4B6AF28D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5ABA231F-AD42-6965-D64B-E5E4B6AF28D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5ABA231F-AD42-6965-D64B-E5E4B6AF28D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5ABA231F-AD42-6965-D64B-E5E4B6AF28D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C009CD7A-20B3-4DC2-B9BC-BDF50E6F30D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C009CD7A-20B3-4DC2-B9BC-BDF50E6F30D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C009CD7A-20B3-4DC2-B9BC-BDF50E6F30D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C009CD7A-20B3-4DC2-B9BC-BDF50E6F30D5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E4FB9628-07EA-461E-974F-98BA8D888411}
+	EndGlobalSection
+EndGlobal
