@@ -67,7 +67,7 @@ namespace TigerSan.CsvOperation.Models
         {
             var str = target.Replace("\"", "\"\"");
 
-            if (target.Contains("\"") || target.Contains(","))
+            if (target.Contains("\"") || target.Contains(",") || target.Contains("\n"))
             {
                 str = $"\"{str}\"";
             }
@@ -101,19 +101,7 @@ namespace TigerSan.CsvOperation.Models
         public CsvResult SetSource(string value)
         {
             var res = CommonHelper.IsSourceVerifyOk(value);
-
-            switch (res.Type)
-            {
-                case CsvResultType.Success:
-                    break;
-                case CsvResultType.Warning:
-                    value = CommonHelper.GetNoNewLineString(value);
-                    break;
-                case CsvResultType.Error:
-                    return res;
-                default:
-                    break;
-            }
+            if (!res.IsSuccess) return res;
 
             _sbSource.Clear();
             _sbSource.Append(value);
@@ -127,7 +115,6 @@ namespace TigerSan.CsvOperation.Models
         #region 设置“目标数据”
         public void SetTarget(string value)
         {
-            value = CommonHelper.GetNoNewLineString(value);
             _sbTarget.Clear();
             _sbTarget.Append(value);
             _sbSource.Clear();

@@ -14,7 +14,22 @@ namespace TigerSan.CsvOperation
     public class CsvHelper
     {
         #region 【Fields】
-        private CsvResult File_Not_Exist { get => new CsvResult(CsvResultType.Error, $"The file does not exist!{Environment.NewLine}{_path}"); }
+        #region [Private]
+        /// <summary>
+        /// 当前行号
+        /// </summary>
+        private int _iRow = 0;
+
+        /// <summary>
+        /// 当前列号
+        /// </summary>
+        private int _iCol = 0;
+
+        /// <summary>
+        /// 所有行
+        /// </summary>
+        private string[] _lines = { };
+        #endregion [Private]
 
         /// <summary>
         /// 文件路径
@@ -33,6 +48,92 @@ namespace TigerSan.CsvOperation
         #endregion 【Fields】
 
         #region 【Properties】
+        #region [Private]
+        #region 报错
+        /// <summary>
+        /// 文件不存在！
+        /// </summary>
+        private CsvResult File_Not_Exist { get => CsvResult.Error($"The file does not exist!{Environment.NewLine}{_path}"); }
+        /// <summary>
+        /// 这里不应该出现双引号！
+        /// </summary>
+        private CsvResult Abnormal_Double_Quotation { get => Error($"Double quotation should not appear here!"); }
+        /// <summary>
+        /// 双引号未闭合！
+        /// </summary>
+        private CsvResult Double_Quotation_Not_Closed { get => Error($"The Double quotation are not closed!"); }
+        /// <summary>
+        /// 内容不能包含单个双引号！
+        /// </summary>
+        private CsvResult ContainSingleDoubleQuotation { get => Error($"The content should not contain single double quotation marks!"); }
+        /// <summary>
+        /// 此处不应出现逗号！
+        /// </summary>
+        private CsvResult Abnormal_Comma { get => Error($"Comma should not appear here!"); }
+        /// <summary>
+        /// 此处不应出现换行符！
+        /// </summary>
+        private CsvResult Abnormal_LineBreak { get => Error($"Line break should not appear here!"); }
+        #endregion 报错
+
+        #region 判断
+        /// <summary>
+        /// 是否到达行尾
+        /// </summary>
+        private bool Is_End_Of_Line { get => _iCol >= Chars.Length - 1; }
+
+        /// <summary>
+        /// 是否有下一个字符
+        /// </summary>
+        private bool Is_Have_Following_Char { get => _iCol < Chars.Length - 1; }
+
+        /// <summary>
+        /// 列索引是否在范围内
+        /// </summary>
+        private bool Is_Col_Index_Within_The_Range { get => _iCol < Chars.Length; }
+
+        /// <summary>
+        /// 行索引是否在范围内
+        /// </summary>
+        private bool Is_Row_Index_Within_The_Range { get => _iRow < _lines.Length; }
+
+        /// <summary>
+        /// 当前字符是否为逗号
+        /// </summary>
+        private bool Current_Char_Is_Comma { get => Is_Col_Index_Within_The_Range && Equals(Chars[_iCol], ','); }
+
+        /// <summary>
+        /// 当前字符是否为换行符
+        /// </summary>
+        private bool Current_Char_Is_LineBreak { get => Is_Col_Index_Within_The_Range && Equals(Chars[_iCol], '\n'); }
+
+        /// <summary>
+        /// 当前字符是否为双引号
+        /// </summary>
+        private bool Current_Char_Is_Double_Quotation { get => Is_Col_Index_Within_The_Range && Equals(Chars[_iCol], '"'); }
+
+        /// <summary>
+        /// 下一个字符是否为逗号
+        /// </summary>
+        private bool Following_Char_Is_Comma { get => Is_Have_Following_Char && Equals(Chars[_iCol + 1], ','); }
+
+        /// <summary>
+        /// 下一个字符是否为双引号
+        /// </summary>
+        private bool Following_Char_Is_Double_Quotation { get => Is_Have_Following_Char && Equals(Chars[_iCol + 1], '"'); }
+        #endregion 判断
+
+        /// <summary>
+        /// 当前行内容
+        /// </summary>
+        private string Line { get => Is_Row_Index_Within_The_Range ? _lines[_iRow] : ""; }
+
+        /// <summary>
+        /// 当前字符数组
+        /// </summary>
+        private char[] Chars { get => Is_Row_Index_Within_The_Range ? _lines[_iRow].ToCharArray() : new List<char>().ToArray(); }
+        #endregion [Private]
+
         /// <summary>
         /// 行长度
         /// </summary>
@@ -58,6 +159,19 @@ namespace TigerSan.CsvOperation
 
         #region 【Functions】
         #region [Private]
+        #region 获取“错误”结果
+        private CsvResult Error(string msg)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("CSV Format Error:");
+            sb.AppendLine(msg);
+            sb.AppendLine($"{nameof(_iRow)} = {_iRow}");
+            sb.AppendLine($"{nameof(_iCol)} = {_iCol}");
+            sb.AppendLine($"{nameof(Line)} = {Line}");
+            return CsvResult.Error(sb.ToString());
+        }
+        #endregion
+
         #region 更新“长度”
         private CsvResult UpdateLength()
         {
@@ -96,159 +210,6 @@ namespace TigerSan.CsvOperation
             #endregion 计算“行长度”
 
             return res;
-        }
-        #endregion
-
-        #region 获取“项目基类”集合
-        private GetItemBasesResult GetItemBases(string line)
-        {
-            // 字符数组：
-            var chars = line.ToCharArray();
-            // “项目基类”集合：
-            var itemBases = new List<CsvItemBase>();
-            // 结果：
-            var basesResult = new GetItemBasesResult(itemBases);
-            // 临时源数据：
-            var sbTempSource = new StringBuilder();
-            // 当前项目：
-            var itemCurrent = new CsvItemBase();
-            itemBases.Add(itemCurrent);
-
-            // 设置数据：
-            for (int iCurrent = 0; iCurrent < chars.Length; iCurrent++)
-            {
-                var ch = chars[iCurrent];
-
-                if (Equals(ch, '"')) // 引号开头
-                {
-                    // 引号结束位置：
-                    var iQuotEnd = iCurrent;
-
-                    #region 获取“引号结束位置”
-                    while (true)
-                    {
-                        ++iQuotEnd;
-
-                        if (iQuotEnd >= chars.Length) // 已到达行尾
-                        {
-                            iQuotEnd = chars.Length - 1; // 回退到最后一个字符位置
-
-                            // “源数据”字符串：
-                            var strSource = line.Substring(iCurrent, iQuotEnd - iCurrent + 1);
-
-                            // 验证“源数据”字符串：
-                            var res = CommonHelper.IsSourceVerifyOk(strSource);
-                            switch (res.Type)
-                            {
-                                case CsvResultType.Success:
-                                    break;
-                                case CsvResultType.Warning:
-                                    basesResult.Type = CsvResultType.Warning;
-                                    basesResult.Message += $"{res.Message}{Environment.NewLine}";
-                                    break;
-                                case CsvResultType.Error:
-                                    var sb = new StringBuilder();
-                                    sb.AppendLine(res.Message);
-                                    sb.AppendLine($"Line: {line}");
-                                    sb.AppendLine($"Position: {iQuotEnd}");
-                                    return new GetItemBasesResult(null, CsvResultType.Error, sb.ToString());
-                                default:
-                                    break;
-                            }
-
-                            break;
-                        }
-                        else if (Equals(chars[iQuotEnd], ',')
-                            && Equals(chars[iQuotEnd - 1], '"')
-                            && !Equals(iQuotEnd - 1, iCurrent)) // 逗号结束
-                        {
-                            --iQuotEnd; // 回退到“引号位置”
-                            break;
-                        }
-                        else if (Equals(chars[iQuotEnd], '"')) // 内容中引号必须成对出现
-                        {
-                            if (Equals(iQuotEnd, iCurrent)) // 跳过起始引号
-                            {
-                                continue;
-                            }
-                            else if (iQuotEnd < chars.Length - 2) // 后面还有字符
-                            {
-                                if (Equals(chars[iQuotEnd + 1], ',')) // 跳过结束引号
-                                {
-                                    continue;
-                                }
-                                else if (!Equals(chars[iQuotEnd + 1], '"')) // 引号未成对出现
-                                {
-                                    var sb = new StringBuilder();
-                                    sb.AppendLine($"The quotation is not paired!");
-                                    sb.AppendLine($"Line: {line}");
-                                    sb.AppendLine($"Position: {iQuotEnd}");
-                                    return new GetItemBasesResult(null, CsvResultType.Error, sb.ToString());
-                                }
-                            }
-
-                            ++iQuotEnd; // 跳过一对冒号中的第二个引号
-                        }
-                    }
-                    #endregion 获取“引号结束位置”
-
-                    #region 复制“项目字符串”
-                    for (int iCopy = iCurrent; iCopy <= iQuotEnd; iCopy++)
-                    {
-                        sbTempSource.Append(chars[iCopy]);
-                    }
-                    #endregion 复制“项目字符串”
-
-                    iCurrent = iQuotEnd + 1; // 跳过“逗号”
-                }
-                else // 普通字符
-                {
-                    int iCopy = iCurrent;
-
-                    #region 复制“项目字符串”
-                    for (; iCopy < chars.Length; iCopy++)
-                    {
-                        iCurrent = iCopy;
-                        var chCopy = chars[iCurrent];
-
-                        if (Equals(chCopy, '"')) // 不应出现引号
-                        {
-                            var sb = new StringBuilder();
-                            sb.AppendLine($"The quotation is not expected here!");
-                            sb.AppendLine($"Line: {line}");
-                            sb.AppendLine($"Position: {iCurrent}");
-                            return new GetItemBasesResult(null, CsvResultType.Error, sb.ToString());
-                        }
-                        else if (Equals(chCopy, ',')) // 逗号结束
-                        {
-                            break;
-                        }
-                        else // 复制字符
-                        {
-                            sbTempSource.Append(chCopy);
-                        }
-                    }
-                    #endregion 复制“项目字符串”
-                }
-
-                #region 下一个项目
-                if (iCurrent < chars.Length && Equals(chars[iCurrent], ',')) // 逗号结束
-                {
-                    // 设置“源数据”：
-                    itemCurrent.Source = sbTempSource.ToString();
-                    // 添加“新项目”：
-                    itemCurrent = new CsvItemBase();
-                    itemBases.Add(itemCurrent);
-                    // 清空“临时源数据”：
-                    sbTempSource.Clear();
-                }
-                #endregion 下一个项目
-            }
-
-            // 设置“源数据”：
-            itemCurrent.Source = sbTempSource.ToString();
-
-            return basesResult;
         }
         #endregion
 
@@ -365,6 +326,157 @@ namespace TigerSan.CsvOperation
             return res;
         }
         #endregion
+
+        #region 获取“普通基类项目”
+        private GetItemBaseResult GetNormalItemBase()
+        {
+            var sbItem = new StringBuilder();
+
+            while (_iCol < Chars.Length)
+            {
+                var ch = Line[_iCol];
+
+                #region 结束
+                if (Current_Char_Is_Comma) // “逗号”结尾
+                {
+                    ++_iCol; // 跳过结束逗号
+                    break;
+                }
+                else if (Is_End_Of_Line) // 到达行尾
+                {
+                    sbItem.Append(ch);
+                    break;
+                }
+                #endregion 结束
+
+                #region 异常
+                if (Current_Char_Is_Double_Quotation)
+                {
+                    return new GetItemBaseResult(null, Abnormal_Double_Quotation);
+                }
+                else if (Current_Char_Is_LineBreak)
+                {
+                    return new GetItemBaseResult(null, Abnormal_LineBreak);
+                }
+                #endregion 异常
+
+                sbItem.Append(ch);
+
+                ++_iCol;
+            }
+
+            return new GetItemBaseResult(new CsvItemBase() { Source = sbItem.ToString() });
+        }
+        #endregion
+
+        #region 获取“特殊基类项目”
+        private GetItemBaseResult GetSpecialItemBase()
+        {
+            bool isEndCopy = false;
+            var sbItem = new StringBuilder();
+            int quotCount = 0;
+
+            sbItem.Append(Line[_iCol]);
+            ++_iCol; // 跳过起始引号
+            ++quotCount;
+
+            while (_iRow < _lines.Length && !isEndCopy)
+            {
+
+                while (_iCol < Chars.Length)
+                {
+                    var ch = Line[_iCol];
+
+                    #region 跳过
+                    if (Current_Char_Is_Double_Quotation && Following_Char_Is_Double_Quotation) // 一对“引号”
+                    {
+                        sbItem.Append(ch);
+                        sbItem.Append(Line[_iCol + 1]);
+                        _iCol += 2; // 跳过“一对引号”中的“第二个引号”
+                        quotCount += 2;
+                        continue;
+                    }
+                    #endregion 跳过
+
+                    #region 结束
+                    if (Current_Char_Is_Double_Quotation && Following_Char_Is_Comma) // “引号+逗号”结尾
+                    {
+                        sbItem.Append(ch);
+                        _iCol += 2; // 跳过“引号+逗号”
+                        isEndCopy = true;
+                        break;
+                    }
+                    else if (Is_End_Of_Line
+                        && Current_Char_Is_Double_Quotation
+                        && quotCount % 2 != 0) // 到达行尾，且“引号”即将闭合
+                    {
+                        sbItem.Append(ch);
+                        isEndCopy = true;
+                        break;
+                    }
+                    #endregion 结束
+
+                    #region 异常
+                    if (Current_Char_Is_Double_Quotation && !Following_Char_Is_Double_Quotation) // 单个“引号”
+                    {
+                        return new GetItemBaseResult(null, ContainSingleDoubleQuotation);
+                    }
+                    #endregion 异常
+
+                    sbItem.Append(ch);
+
+                    ++_iCol;
+                }
+
+                if (isEndCopy)
+                {
+                    break;
+                }
+                else
+                {
+                    ++_iRow;
+                    _iCol = 0;
+                    sbItem.AppendLine();
+                }
+            }
+
+            return new GetItemBaseResult(new CsvItemBase() { Source = sbItem.ToString() });
+        }
+        #endregion
+
+        #region 获取“一行数据”的“基类项目”集合
+        private GetOneRowItemBasesResult GetOneRowItemBases()
+        {
+            var itemBases = new List<CsvItemBase>();
+
+            while (!Is_End_Of_Line)
+            {
+                var ch = Chars[_iCol];
+                var res = new GetItemBaseResult();
+
+                if (Current_Char_Is_Double_Quotation) // 引号开头
+                {
+                    res = GetSpecialItemBase();
+                }
+                else // 普通字符开头
+                {
+                    res = GetNormalItemBase();
+                }
+
+                if (!res.IsSuccess) return new GetOneRowItemBasesResult(res);
+
+                itemBases.Add(res.ItemBase);
+
+                if (Is_End_Of_Line)
+                {
+                    _iCol = 0;
+                    ++_iRow;
+                    break;
+                }
+            }
+            return new GetOneRowItemBasesResult(itemBases);
+        }
+        #endregion
         #endregion [Private]
 
         #region 加载
@@ -401,60 +513,65 @@ namespace TigerSan.CsvOperation
         #endregion
 
         #region 初始化
+        public CsvResult Init(string[] lines)
+        {
+            _lines = lines;
+
+            #region 清空
+            _iRow = 0;
+            _iCol = 0;
+            Headers.Clear();
+            Rows.Clear();
+            #endregion 清空
+
+            #region 判错
+            if (_lines.Length < 1)
+            {
+                return new CsvResult(CsvResultType.Error, "The CSV data is empty!");
+            }
+            #endregion 判错
+
+            #region 列头行
+            // 获取“基类项目”集合：
+            var resHeaderItemBases = GetOneRowItemBases();
+            if (!resHeaderItemBases.IsSuccess) return new CsvResult(resHeaderItemBases);
+
+            // 添加“表头项目”：
+            foreach (var itemBase in resHeaderItemBases.ItemBases)
+            {
+                var header = new CsvHeader(this) { Source = itemBase.Source };
+                Headers.Add(header);
+            }
+            #endregion 列头行
+
+            #region 数据行
+            while (_iRow < _lines.Length)
+            {
+                var row = new CsvRow(this);
+                Rows.Add(row);
+
+                // 获取“基类项目”集合：
+                var resDataItemBases = GetOneRowItemBases();
+                if (!resDataItemBases.IsSuccess) return new CsvResult(resDataItemBases);
+
+                // 添加“数据项目”：
+                foreach (var itemBase in resDataItemBases.ItemBases)
+                {
+                    var item = new CsvItem(row) { Source = itemBase.Source };
+                    row.Items.Add(item);
+                }
+            }
+            #endregion 数据行
+
+            return UpdateLength();
+        }
+
+        #region 初始化（异步）
         public async Task<CsvResult> InitAsync(string[] lines)
         {
             return await Task.Run(() => Init(lines));
         }
-
-        public CsvResult Init(string[] lines)
-        {
-            Headers.Clear();
-            Rows.Clear();
-
-            // 过滤空行：
-            var noEmptylines = lines.Where(line => !string.IsNullOrEmpty(line)).ToArray();
-
-            for (int iRow = 0; iRow < noEmptylines.Length; iRow++)
-            {
-                var line = noEmptylines[iRow];
-
-                // 基类集合：
-                var result = GetItemBases(line);
-                if (!result.IsSuccess)
-                {
-                    return new CsvResult(CsvResultType.Error, result.Message);
-                }
-                if (result.ItemBases == null)
-                {
-                    var sb = new StringBuilder();
-                    sb.AppendLine($"The {nameof(result.ItemBases)} is null!");
-                    sb.AppendLine($"Line: {line}");
-                    sb.AppendLine($"iRow: {iRow}");
-                    return new GetItemBasesResult(null, CsvResultType.Error, sb.ToString());
-                }
-
-                if (iRow == 0) // 列头行
-                {
-                    foreach (var item in result.ItemBases)
-                    {
-                        Headers.Add(new CsvHeader(this, item));
-                    }
-                    continue;
-                }
-                else // 数据行
-                {
-                    var row = new CsvRow(this);
-                    Rows.Add(row);
-
-                    foreach (var item in result.ItemBases)
-                    {
-                        row.Items.Add(new CsvItem(row, item));
-                    }
-                }
-            }
-
-            return UpdateLength();
-        }
+        #endregion
         #endregion
 
         #region 序列化
@@ -555,11 +672,13 @@ namespace TigerSan.CsvOperation
             #region 方法：添加“目标数据”
             void AddTarget(int iCol, string target, bool isHeader = false)
             {
+                target = CommonHelper.GetNoNewLineString(target); // 去除换行符
+
                 var header = Headers[iCol];
 
                 var maxLength = header.MaxLength;
 
-                if (isHeader)
+                if (isHeader) // 列头居中
                 {
                     var padding = (maxLength - target.Length) / 2 + _padding;
                     sb.Append(new string(' ', padding));
@@ -571,7 +690,7 @@ namespace TigerSan.CsvOperation
                         sb.Append(' ');
                     }
                 }
-                else
+                else // 数据左对齐
                 {
                     sb.Append(new string(' ', _padding));
                     sb.Append(target);

@@ -5,7 +5,7 @@
     <Description>A C# class library for reading, writing, serialization and deserialization of CSV.</Description>
     <Authors>TigerSan</Authors>
     <Title>$(AssemblyName)</Title>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <Copyright>bilibili 真的虎子君</Copyright>
     <PackageIcon>logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>

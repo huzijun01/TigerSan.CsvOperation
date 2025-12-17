@@ -114,11 +114,7 @@ namespace TigerSan.CsvOperation.Helpers
         #region 判断“源数据”是否合法
         public static CsvResult IsSourceVerifyOk(string value)
         {
-            if (value.Contains("\n")) // 不能包含换行符
-            {
-                return new CsvResult(CsvResultType.Warning, "The value cannot contain a newline character!");
-            }
-            else if (value.StartsWith("\"")) // 引号必须闭合
+            if (value.StartsWith("\"")) // 引号必须闭合
             {
                 var Quotation_Not_Paired = new CsvResult(CsvResultType.Error, $"The quotation is not paired!");
 

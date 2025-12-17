@@ -67,4 +67,5 @@ A C# class library for reading, writing, serialization and deserialization of CS
 ### CsvResult:
 #### CsvResultType:
 #### CsvResult:
-#### GetItemBasesResult:
+#### GetItemBaseResult:
+#### GetOneRowItemBasesResult:
