@@ -5,38 +5,26 @@ using TigerSan.CsvOperation.Helpers;
 namespace TigerSan.CsvOperation.Models
 {
     #region 项目基类
-    /// <summary>
-    /// 项目基类
-    /// </summary>
+    /// <summary>项目基类</summary>
     public class CsvItemBase
     {
         #region 【Fields】
-        /// <summary>
-        /// “源数据”构建器
-        /// </summary>
+        /// <summary>“源数据”构建器</summary>
         private readonly StringBuilder _sbSource = new StringBuilder();
 
-        /// <summary>
-        /// “目标数据”构建器
-        /// </summary>
+        /// <summary>“目标数据”构建器</summary>
         private readonly StringBuilder _sbTarget = new StringBuilder();
         #endregion 【Fields】
 
         #region 【Properties】
-        /// <summary>
-        /// 源数据
-        /// （同步修改“目标数据”）
-        /// </summary>
+        /// <summary>源数据（同步修改“目标数据”）</summary>
         public string Source
         {
             get => _sbSource.ToString();
             set => SetSource(value);
         }
 
-        /// <summary>
-        /// 目标数据
-        /// （同步修改“源数据”）
-        /// </summary>
+        /// <summary>目标数据（同步修改“源数据”）</summary>
         public string Target
         {
             get => _sbTarget.ToString();
@@ -45,9 +33,7 @@ namespace TigerSan.CsvOperation.Models
         #endregion 【Properties】
 
         #region 【Ctor】
-        public CsvItemBase()
-        {
-        }
+        public CsvItemBase() { }
 
         public CsvItemBase(CsvItemBase itemBase)
         {
@@ -126,32 +112,26 @@ namespace TigerSan.CsvOperation.Models
     #endregion
 
     #region 列头
-    /// <summary>
-    /// 列头
-    /// </summary>
-    public class CsvHeader : CsvItemBase
+    /// <summary>列头</summary>
+    public class CsvHeader<T> : CsvItemBase where T : class, new()
     {
         #region 【Fields】
-        /// <summary>
-        /// 模型
-        /// </summary>
-        public readonly CsvHelper _model;
+        /// <summary>模型</summary>
+        public readonly CsvHelper<T> _model;
         #endregion 【Fields】
 
         #region 【Properties】
-        /// <summary>
-        /// 最大长度
-        /// </summary>
+        /// <summary>最大长度</summary>
         public int MaxLength { get; set; }
         #endregion 【Properties】
 
         #region 【Ctor】
-        public CsvHeader(CsvHelper model)
+        public CsvHeader(CsvHelper<T> model)
         {
             _model = model;
         }
 
-        public CsvHeader(CsvHelper model, CsvItemBase itemBase) : base(itemBase)
+        public CsvHeader(CsvHelper<T> model, CsvItemBase itemBase) : base(itemBase)
         {
             _model = model;
         }
@@ -160,25 +140,21 @@ namespace TigerSan.CsvOperation.Models
     #endregion
 
     #region 项目
-    /// <summary>
-    /// 项目
-    /// </summary>
-    public class CsvItem : CsvItemBase
+    /// <summary>项目</summary>
+    public class CsvItem<T> : CsvItemBase where T : class, new()
     {
         #region 【Fields】
-        /// <summary>
-        /// 行
-        /// </summary>
-        public readonly CsvRow _row;
+        /// <summary>行</summary>
+        public readonly CsvRow<T> _row;
         #endregion 【Fields】
 
         #region 【Ctor】
-        public CsvItem(CsvRow row)
+        public CsvItem(CsvRow<T> row)
         {
             _row = row;
         }
 
-        public CsvItem(CsvRow row, CsvItemBase itemBase) : base(itemBase)
+        public CsvItem(CsvRow<T> row, CsvItemBase itemBase) : base(itemBase)
         {
             _row = row;
         }
@@ -187,25 +163,19 @@ namespace TigerSan.CsvOperation.Models
     #endregion
 
     #region 行
-    /// <summary>
-    /// 行
-    /// </summary>
-    public class CsvRow
+    /// <summary>行</summary>
+    public class CsvRow<T> where T : class, new()
     {
         #region 【Fields】
-        /// <summary>
-        /// 模型
-        /// </summary>
-        public readonly CsvHelper _model;
+        /// <summary>模型</summary>
+        public readonly CsvHelper<T> _model;
         #endregion 【Fields】
 
-        /// <summary>
-        /// 项目集合
-        /// </summary>
-        public List<CsvItem> Items { get; set; } = new List<CsvItem>();
+        /// <summary>项目集合</summary>
+        public List<CsvItem<T>> Items { get; set; } = new List<CsvItem<T>>();
 
         #region 【Ctor】
-        public CsvRow(CsvHelper model)
+        public CsvRow(CsvHelper<T> model)
         {
             _model = model;
         }

@@ -11,143 +11,78 @@ using TigerSan.CsvOperation.Helpers;
 
 namespace TigerSan.CsvOperation
 {
-    public class CsvHelper
+    public class CsvHelper<T> where T : class, new()
     {
         #region 【Fields】
         #region [Private]
-        /// <summary>
-        /// 当前行号
-        /// </summary>
+        /// <summary>当前行号</summary>
         private int _iRow = 0;
-
-        /// <summary>
-        /// 当前列号
-        /// </summary>
+        /// <summary>当前列号</summary>
         private int _iCol = 0;
-
-        /// <summary>
-        /// 所有行
-        /// </summary>
+        /// <summary>所有行</summary>
         private string[] _lines = { };
         #endregion [Private]
 
-        /// <summary>
-        /// 文件路径
-        /// </summary>
-        public readonly string _path;
-
-        /// <summary>
-        /// 内边距
-        /// </summary>
+        /// <summary>文件路径</summary>
+        public string _path;
+        /// <summary>内边距</summary>
         public readonly int _padding = 2;
-
-        /// <summary>
-        /// 时间戳格式
-        /// </summary>
+        /// <summary>时间戳格式</summary>
         public string _dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
         #endregion 【Fields】
 
         #region 【Properties】
         #region [Private]
         #region 报错
-        /// <summary>
-        /// 文件不存在！
-        /// </summary>
+        /// <summary>路径不能为空！</summary>
+        private CsvResult Path_Cannot_Be_Empty { get => CsvResult.Error("The path cannot be empty!"); }
+        /// <summary>文件不存在！</summary>
         private CsvResult File_Not_Exist { get => CsvResult.Error($"The file does not exist!{Environment.NewLine}{_path}"); }
-        /// <summary>
-        /// 这里不应该出现双引号！
-        /// </summary>
+        /// <summary>此处不应该出现双引号！</summary>
         private CsvResult Abnormal_Double_Quotation { get => Error($"Double quotation should not appear here!"); }
-        /// <summary>
-        /// 双引号未闭合！
-        /// </summary>
+        /// <summary>双引号未闭合！</summary>
         private CsvResult Double_Quotation_Not_Closed { get => Error($"The Double quotation are not closed!"); }
-        /// <summary>
-        /// 内容不能包含单个双引号！
-        /// </summary>
+        /// <summary>内容不能包含单个双引号！</summary>
         private CsvResult ContainSingleDoubleQuotation { get => Error($"The content should not contain single double quotation marks!"); }
-        /// <summary>
-        /// 此处不应出现逗号！
-        /// </summary>
+        /// <summary>此处不应出现逗号！</summary>
         private CsvResult Abnormal_Comma { get => Error($"Comma should not appear here!"); }
-        /// <summary>
-        /// 此处不应出现换行符！
-        /// </summary>
+        /// <summary>此处不应出现换行符！</summary>
         private CsvResult Abnormal_LineBreak { get => Error($"Line break should not appear here!"); }
         #endregion 报错
 
         #region 判断
-        /// <summary>
-        /// 是否到达行尾
-        /// </summary>
+        /// <summary>是否到达行尾</summary>
         private bool Is_End_Of_Line { get => _iCol >= Chars.Length - 1; }
-
-        /// <summary>
-        /// 是否有下一个字符
-        /// </summary>
+        /// <summary>是否有下一个字符</summary>
         private bool Is_Have_Following_Char { get => _iCol < Chars.Length - 1; }
-
-        /// <summary>
-        /// 列索引是否在范围内
-        /// </summary>
+        /// <summary>列索引是否在范围内</summary>
         private bool Is_Col_Index_Within_The_Range { get => _iCol < Chars.Length; }
-
-        /// <summary>
-        /// 行索引是否在范围内
-        /// </summary>
+        /// <summary>行索引是否在范围内</summary>
         private bool Is_Row_Index_Within_The_Range { get => _iRow < _lines.Length; }
-
-        /// <summary>
-        /// 当前字符是否为逗号
-        /// </summary>
+        /// <summary>当前字符是否为逗号</summary>
         private bool Current_Char_Is_Comma { get => Is_Col_Index_Within_The_Range && Equals(Chars[_iCol], ','); }
-
-        /// <summary>
-        /// 当前字符是否为换行符
-        /// </summary>
+        /// <summary>当前字符是否为换行符</summary>
         private bool Current_Char_Is_LineBreak { get => Is_Col_Index_Within_The_Range && Equals(Chars[_iCol], '\n'); }
-
-        /// <summary>
-        /// 当前字符是否为双引号
-        /// </summary>
+        /// <summary>当前字符是否为双引号</summary>
         private bool Current_Char_Is_Double_Quotation { get => Is_Col_Index_Within_The_Range && Equals(Chars[_iCol], '"'); }
-
-        /// <summary>
-        /// 下一个字符是否为逗号
-        /// </summary>
+        /// <summary>下一个字符是否为逗号</summary>
         private bool Following_Char_Is_Comma { get => Is_Have_Following_Char && Equals(Chars[_iCol + 1], ','); }
-
-        /// <summary>
-        /// 下一个字符是否为双引号
-        /// </summary>
+        /// <summary>下一个字符是否为双引号</summary>
         private bool Following_Char_Is_Double_Quotation { get => Is_Have_Following_Char && Equals(Chars[_iCol + 1], '"'); }
         #endregion 判断
 
-        /// <summary>
-        /// 当前行内容
-        /// </summary>
+        /// <summary>当前行内容</summary>
         private string Line { get => Is_Row_Index_Within_The_Range ? _lines[_iRow] : ""; }
-
-        /// <summary>
-        /// 当前字符数组
-        /// </summary>
+        /// <summary>当前字符数组</summary>
         private char[] Chars { get => Is_Row_Index_Within_The_Range ? _lines[_iRow].ToCharArray() : new List<char>().ToArray(); }
         #endregion [Private]
 
-        /// <summary>
-        /// 行长度
-        /// </summary>
+        /// <summary>行长度</summary>
         public int RowLength { get; private set; }
-
-        /// <summary>
-        /// 列头集合
-        /// </summary>
-        public List<CsvHeader> Headers { get; set; } = new List<CsvHeader>();
-
-        /// <summary>
-        /// 行集合
-        /// </summary>
-        public List<CsvRow> Rows { get; set; } = new List<CsvRow>();
+        /// <summary>列头集合</summary>
+        public List<CsvHeader<T>> Headers { get; set; } = new List<CsvHeader<T>>();
+        /// <summary>行集合</summary>
+        public List<CsvRow<T>> Rows { get; set; } = new List<CsvRow<T>>();
         #endregion 【Properties】
 
         #region 【Ctor】
@@ -241,13 +176,13 @@ namespace TigerSan.CsvOperation
         private CsvResult SetObjectToRow(PropertyInfo[] properties, object obj)
         {
             var res = new CsvResult();
-            var row = new CsvRow(this);
+            var row = new CsvRow<T>(this);
             Rows.Add(row);
 
             // 遍历对象属性：
             foreach (var prop in properties)
             {
-                var item = new CsvItem(row);
+                var item = new CsvItem<T>(row);
                 var value = prop.GetValue(obj);
                 var propType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
                 row.Items.Add(item);
@@ -284,7 +219,7 @@ namespace TigerSan.CsvOperation
         #endregion
 
         #region 将“数据行”设置到“对象”
-        private CsvResult SetRowToObject<T>(PropertyInfo[] properties, CsvRow row, T obj) where T : class, new()
+        private CsvResult SetRowToObject(PropertyInfo[] properties, CsvRow<T> row, T obj)
         {
             // “列头”集合：
             var headers = row._model.Headers;
@@ -482,7 +417,12 @@ namespace TigerSan.CsvOperation
         #region 加载
         public CsvResult Load()
         {
-            if (!File.Exists(_path)) return File_Not_Exist;
+            if (string.IsNullOrEmpty(_path)) return Path_Cannot_Be_Empty;
+            if (!File.Exists(_path))
+            {
+                InitDefaultHeaders();
+                Save();
+            }
 
             var lines = File.ReadAllLines(_path);
 
@@ -491,7 +431,12 @@ namespace TigerSan.CsvOperation
 
         public async Task<CsvResult> LoadAsync()
         {
-            if (!File.Exists(_path)) return File_Not_Exist;
+            if (string.IsNullOrEmpty(_path)) return Path_Cannot_Be_Empty;
+            if (!File.Exists(_path))
+            {
+                InitDefaultHeaders();
+                Save();
+            }
 
             var lines = await CommonHelper.ReadAllLinesAsync(_path);
 
@@ -512,6 +457,70 @@ namespace TigerSan.CsvOperation
         }
         #endregion
 
+        #region 追加
+        public CsvResult Append(object obj)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_path)) return Path_Cannot_Be_Empty;
+                if (!File.Exists(_path))
+                {
+                    InitDefaultHeaders();
+                    Save();
+                }
+                _lines = File.ReadAllLines(_path);
+
+                #region 清空
+                _iRow = 0;
+                _iCol = 0;
+                Headers.Clear();
+                Rows.Clear();
+                #endregion 清空
+
+                if (_lines.Length < 1)
+                {
+                    Console.WriteLine("The CSV data is empty!");
+                    InitDefaultHeaders();
+                    Save();
+                }
+                else
+                {
+                    #region 列头行
+                    // 获取“基类项目”集合：
+                    var resHeaderItemBases = GetOneRowItemBases();
+                    if (!resHeaderItemBases.IsSuccess) return new CsvResult(resHeaderItemBases);
+
+                    // 添加“表头项目”：
+                    foreach (var itemBase in resHeaderItemBases.ItemBases)
+                    {
+                        var header = new CsvHeader<T>(this) { Source = itemBase.Source };
+                        Headers.Add(header);
+                    }
+                    #endregion 列头行
+                }
+
+                CommonHelper.AddEnter(_path);
+
+                #region 数据行
+                var resSerialization = Serialization(obj);
+                if (!resSerialization.IsSuccess) return resSerialization;
+                #endregion 数据行
+
+                File.AppendAllText(_path, $"{GetSourceString(false)}{Environment.NewLine}");
+                return UpdateLength();
+            }
+            catch (Exception e)
+            {
+                return CsvResult.Error(e.Message);
+            }
+        }
+
+        public async Task<CsvResult> AppendAsync(object obj)
+        {
+            return await Task.Run(() => Append(obj));
+        }
+        #endregion
+
         #region 初始化
         public CsvResult Init(string[] lines)
         {
@@ -524,30 +533,34 @@ namespace TigerSan.CsvOperation
             Rows.Clear();
             #endregion 清空
 
-            #region 判错
             if (_lines.Length < 1)
             {
-                return new CsvResult(CsvResultType.Error, "The CSV data is empty!");
+                Console.WriteLine("The CSV data is empty!");
+                InitDefaultHeaders();
+                Save();
             }
-            #endregion 判错
-
-            #region 列头行
-            // 获取“基类项目”集合：
-            var resHeaderItemBases = GetOneRowItemBases();
-            if (!resHeaderItemBases.IsSuccess) return new CsvResult(resHeaderItemBases);
-
-            // 添加“表头项目”：
-            foreach (var itemBase in resHeaderItemBases.ItemBases)
+            else
             {
-                var header = new CsvHeader(this) { Source = itemBase.Source };
-                Headers.Add(header);
+                #region 列头行
+                // 获取“基类项目”集合：
+                var resHeaderItemBases = GetOneRowItemBases();
+                if (!resHeaderItemBases.IsSuccess) return new CsvResult(resHeaderItemBases);
+
+                // 添加“表头项目”：
+                foreach (var itemBase in resHeaderItemBases.ItemBases)
+                {
+                    var header = new CsvHeader<T>(this) { Source = itemBase.Source };
+                    Headers.Add(header);
+                }
+                #endregion 列头行
             }
-            #endregion 列头行
+
+            CommonHelper.AddEnter(_path);
 
             #region 数据行
             while (_iRow < _lines.Length)
             {
-                var row = new CsvRow(this);
+                var row = new CsvRow<T>(this);
                 Rows.Add(row);
 
                 // 获取“基类项目”集合：
@@ -557,7 +570,7 @@ namespace TigerSan.CsvOperation
                 // 添加“数据项目”：
                 foreach (var itemBase in resDataItemBases.ItemBases)
                 {
-                    var item = new CsvItem(row) { Source = itemBase.Source };
+                    var item = new CsvItem<T>(row) { Source = itemBase.Source };
                     row.Items.Add(item);
                 }
             }
@@ -574,8 +587,36 @@ namespace TigerSan.CsvOperation
         #endregion
         #endregion
 
+        #region 初始化“默认表头”集合
+        public CsvResult InitDefaultHeaders()
+        {
+            var properties = typeof(T).GetProperties();
+            Headers.Clear();
+            // 遍历对象属性：
+            foreach (var prop in properties)
+            {
+                Headers.Add(new CsvHeader<T>(this) { Source = prop.Name });
+            }
+
+            return new CsvResult();
+        }
+        #endregion
+
+        #region 序列化（单条）
+        public CsvResult Serialization(object obj)
+        {
+            var properties = typeof(T).GetProperties();
+
+            Rows.Clear();
+
+            SetObjectToRow(properties, obj);
+
+            return IsVerifyOk();
+        }
+        #endregion
+
         #region 序列化
-        public CsvResult Serialization<T>(IList<object> list) where T : class, new()
+        public CsvResult Serialization(IList<object> list)
         {
             var properties = typeof(T).GetProperties();
 
@@ -592,7 +633,7 @@ namespace TigerSan.CsvOperation
         #endregion
 
         #region 反序列化
-        public ObservableCollection<object> Deserialization<T>() where T : class, new()
+        public ObservableCollection<object> Deserialization()
         {
             var properties = typeof(T).GetProperties();
             var list = new ObservableCollection<object>();
@@ -611,28 +652,31 @@ namespace TigerSan.CsvOperation
         #endregion
 
         #region 获取“源数据”字符串
-        public string GetSourceString()
+        public string GetSourceString(bool isIncludeHeaders = true)
         {
             var res = IsVerifyOk();
             if (!res.IsSuccess) return string.Empty;
 
             var sb = new StringBuilder();
 
-            #region 表头行
-            for (int iCol = 0; iCol < Headers.Count; iCol++)
+            if (isIncludeHeaders)
             {
-                var header = Headers[iCol];
-
-                sb.Append(header.Source);
-
-                if (iCol < Headers.Count - 1)
+                #region 表头行
+                for (int iCol = 0; iCol < Headers.Count; iCol++)
                 {
-                    sb.Append(',');
-                }
-            }
+                    var header = Headers[iCol];
 
-            sb.AppendLine();
-            #endregion 表头行
+                    sb.Append(header.Source);
+
+                    if (iCol < Headers.Count - 1)
+                    {
+                        sb.Append(',');
+                    }
+                }
+
+                sb.AppendLine();
+                #endregion 表头行
+            }
 
             #region 数据行
             for (int iRow = 0; iRow < Rows.Count; iRow++)

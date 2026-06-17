@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using TigerSan.CsvOperation.Models;
 
@@ -6,6 +7,53 @@ namespace TigerSan.CsvOperation.Helpers
 {
     public static class CommonHelper
     {
+        #region 补“换行符”
+        public static void AddEnter(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                Console.WriteLine("The path cannot be empty");
+                return;
+            }
+
+            if (!File.Exists(path))
+            {
+                Console.WriteLine("The file does not exist!" + path);
+                return;
+            }
+
+            try
+            {
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096, FileOptions.SequentialScan))
+                {
+                    var bufferSize = (int)Math.Min(fs.Length, 4096);
+                    var buffer = new byte[bufferSize];
+
+                    fs.Seek(-bufferSize, SeekOrigin.End);
+                    var bytesRead = fs.Read(buffer, 0, bufferSize);
+
+                    // 检查读取的内容是否以换行符结尾
+                    if (bytesRead > 0)
+                    {
+                        var lastChar = (char)buffer[bytesRead - 1];
+                        if (lastChar == '\n') return;
+                    }
+                }
+
+                // 追加换行符，避免重写整个文件
+                File.AppendAllText(path, Environment.NewLine);
+            }
+            catch (UnauthorizedAccessException uae)
+            {
+                Console.WriteLine(uae.Message);
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+        #endregion
+
         #region 异步读取“所有行”
         public static async Task<string[]> ReadAllLinesAsync(string path)
         {
@@ -41,10 +89,14 @@ namespace TigerSan.CsvOperation.Helpers
         #region 异步写入“所有文本”
         public static async Task WriteAllTextAsync(string path, string str)
         {
-            await Task.Run(() =>
-            {
-                File.WriteAllText(path, str);
-            });
+            await Task.Run(() => File.WriteAllText(path, str));
+        }
+        #endregion
+
+        #region 异步写入“所有文本”
+        public static async Task AppendAllTextAsync(string path, string str)
+        {
+            await Task.Run(() => File.AppendAllText(path, str));
         }
         #endregion
 

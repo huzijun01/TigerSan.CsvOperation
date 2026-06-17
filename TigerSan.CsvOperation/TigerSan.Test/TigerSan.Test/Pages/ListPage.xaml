@@ -33,6 +33,12 @@
                     Command="{Binding btnAdd_ClickCommand}"/>
 
                 <Button
+                    x:Name="btnAppend"
+                    Content="追加"
+                    Margin="{StaticResource Button.Margin}"
+                    Command="{Binding btnAppendList_ClickCommand}"/>
+
+                <Button
                     x:Name="btnSaveList"
                     Content="保存"
                     Margin="{StaticResource Button.Margin}"

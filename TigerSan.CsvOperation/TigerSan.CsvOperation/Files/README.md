@@ -4,6 +4,8 @@ A C# class library for reading, writing, serialization and deserialization of CS
 ## Helpers:
 ### CsvHelper:
 #### Fields:
+`_path`:
+
 `_dateTimeFormat`:
 
 #### Properties:
@@ -19,6 +21,10 @@ A C# class library for reading, writing, serialization and deserialization of CS
 `Save`:
 
 `SaveAsync`:
+
+`Append`:
+
+`AppendAsync`:
 
 `Init`:
 
@@ -41,6 +47,8 @@ A C# class library for reading, writing, serialization and deserialization of CS
 `ReadAllLinesAsync`:
 
 ### CommonHelper:
+`AddEnter`:
+
 `ReadAllLinesAsync`:
 
 `ReadAllTextAsync`:

@@ -1,10 +1,11 @@
 ﻿using System.IO;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using TigerSan.CsvLog;
-using TigerSan.UI.Models;
-using TigerSan.UI.Helpers;
-using TigerSan.PathOperation;
 using TigerSan.CsvOperation.Models;
+using TigerSan.PathOperation;
+using TigerSan.UI.Helpers;
+using TigerSan.UI.Models;
 
 namespace TigerSan.Test.ViewModels
 {
@@ -103,7 +104,7 @@ namespace TigerSan.Test.ViewModels
         public ICommand btnLoad_ClickCommand { get => new AsyncDelegateCommand(btnLoad_Click); }
         private async Task btnLoad_Click()
         {
-            var model = new CsvOperation.CsvHelper(source);
+            var model = new CsvOperation.CsvHelper<LogData>(source);
             var res = await model.LoadAsync();
 
             if (!res.IsSuccess)
@@ -128,7 +129,7 @@ namespace TigerSan.Test.ViewModels
         {
             var lines = Source.Split(Environment.NewLine);
 
-            var model = new CsvOperation.CsvHelper(output);
+            var model = new CsvOperation.CsvHelper<LogData>(output);
             var res = await model.InitAsync(lines);
 
             if (!res.IsSuccess)
@@ -185,6 +186,30 @@ namespace TigerSan.Test.ViewModels
         }
         #endregion
 
+        #region 点击“追加”按钮
+        public ICommand btnAppendList_ClickCommand { get => new AsyncDelegateCommand(btnAppendList_Click); }
+        private async Task btnAppendList_Click()
+        {
+            var paths = GetLogPaths();
+            if (paths.Length < 1)
+            {
+                MsgBox.ShowWarning("无日志");
+                return;
+            }
+
+            var model = new CsvOperation.CsvHelper<LogData>(paths.FirstOrDefault());
+            var resAppend = await model.AppendAsync(GetLogData("Hello World"));
+            if (!resAppend.IsSuccess)
+            {
+                ShowResult(resAppend, "追加失败");
+                return;
+            }
+
+            var res = await LoadAsync();
+            ShowResult(res, "追加成功");
+        }
+        #endregion
+
         #region 点击“保存”按钮
         public ICommand btnSaveList_ClickCommand { get => new AsyncDelegateCommand(btnSaveList_Click); }
         private async Task btnSaveList_Click()
@@ -196,9 +221,9 @@ namespace TigerSan.Test.ViewModels
                 return;
             }
 
-            var model = new CsvOperation.CsvHelper(paths[0]);
+            var model = new CsvOperation.CsvHelper<LogData>(paths[0]);
             model.Load();
-            model.Serialization<LogData>(LogTable.RowDatas);
+            model.Serialization(LogTable.RowDatas);
             model.Save();
 
             var res = await LoadAsync();
@@ -244,7 +269,7 @@ namespace TigerSan.Test.ViewModels
                 return new CsvResult(CsvResultType.Warning, "无日志");
             }
 
-            var model = new CsvOperation.CsvHelper(paths[0]);
+            var model = new CsvOperation.CsvHelper<LogData>(paths[0]);
             var res = await model.LoadAsync();
 
             if (!res.IsSuccess)
@@ -252,7 +277,7 @@ namespace TigerSan.Test.ViewModels
                 return new CsvResult(CsvResultType.Error, res.Message);
             }
 
-            LogTable.RowDatas = model.Deserialization<LogData>();
+            LogTable.RowDatas = model.Deserialization();
 
             return new CsvResult();
         }
@@ -270,9 +295,7 @@ namespace TigerSan.Test.ViewModels
 
             // 获取所有csv文件并筛选符合条件的文件
             var files = Directory.GetFiles(baseDirectory, "*.csv")
-                .Where(file =>
-                    Path.GetFileName(file)
-                    .StartsWith("log_", StringComparison.OrdinalIgnoreCase))
+                .Where(file => Path.GetFileName(file).StartsWith("log_", StringComparison.OrdinalIgnoreCase))
                 .ToArray();
 
             return files;
@@ -300,6 +323,20 @@ namespace TigerSan.Test.ViewModels
                     MsgBox.ShowSuccess(strSuccee);
                     break;
             }
+        }
+        #endregion
+
+        #region 获取“Log数据”
+        public LogData GetLogData(string? log, [CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = -1)
+        {
+            return new LogData
+            {
+                Type = "LOG",
+                MemberName = memberName,
+                FilePath = filePath,
+                LineNumber = lineNumber,
+                Log = (log ?? string.Empty)
+            };
         }
         #endregion
         #endregion 【Functions】
