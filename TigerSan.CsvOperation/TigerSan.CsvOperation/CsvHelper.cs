@@ -52,7 +52,7 @@ namespace TigerSan.CsvOperation
 
         #region 判断
         /// <summary>是否到达行尾</summary>
-        private bool Is_End_Of_Line { get => _iCol >= Chars.Length - 1; }
+        private bool Is_End_Of_Line { get => _iCol >= Chars.Length; }
         /// <summary>是否有下一个字符</summary>
         private bool Is_Have_Following_Char { get => _iCol < Chars.Length - 1; }
         /// <summary>列索引是否在范围内</summary>
@@ -173,7 +173,7 @@ namespace TigerSan.CsvOperation
         #endregion
 
         #region 将“对象”设置到“数据行”
-        private CsvResult SetObjectToRow(PropertyInfo[] properties, object obj)
+        private CsvResult SetObjectToRow(PropertyInfo[] properties, T obj)
         {
             var res = new CsvResult();
             var row = new CsvRow<T>(this);
@@ -458,7 +458,7 @@ namespace TigerSan.CsvOperation
         #endregion
 
         #region 追加
-        public CsvResult Append(object obj)
+        public CsvResult Append(T obj)
         {
             try
             {
@@ -515,7 +515,7 @@ namespace TigerSan.CsvOperation
             }
         }
 
-        public async Task<CsvResult> AppendAsync(object obj)
+        public async Task<CsvResult> AppendAsync(T obj)
         {
             return await Task.Run(() => Append(obj));
         }
@@ -603,7 +603,7 @@ namespace TigerSan.CsvOperation
         #endregion
 
         #region 序列化（单条）
-        public CsvResult Serialization(object obj)
+        public CsvResult Serialization(T obj)
         {
             var properties = typeof(T).GetProperties();
 
@@ -616,7 +616,7 @@ namespace TigerSan.CsvOperation
         #endregion
 
         #region 序列化
-        public CsvResult Serialization(IList<object> list)
+        public CsvResult Serialization(IList<T> list)
         {
             var properties = typeof(T).GetProperties();
 
@@ -633,10 +633,10 @@ namespace TigerSan.CsvOperation
         #endregion
 
         #region 反序列化
-        public ObservableCollection<object> Deserialization()
+        public ObservableCollection<T> Deserialization()
         {
             var properties = typeof(T).GetProperties();
-            var list = new ObservableCollection<object>();
+            var list = new ObservableCollection<T>();
 
             foreach (var item in Rows)
             {
