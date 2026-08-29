@@ -1,11 +1,12 @@
 ﻿using System.IO;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using TigerSan.CsvLog;
-using TigerSan.CsvOperation.Models;
-using TigerSan.PathOperation;
-using TigerSan.UI.Helpers;
+using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 using TigerSan.UI.Models;
+using TigerSan.UI.Helpers;
+using TigerSan.CsvLog;
+using TigerSan.PathOperation;
+using TigerSan.CsvOperation.Models;
 
 namespace TigerSan.Test.ViewModels
 {
@@ -223,7 +224,7 @@ namespace TigerSan.Test.ViewModels
 
             var model = new CsvOperation.CsvHelper<LogData>(paths[0]);
             model.Load();
-            model.Serialization(LogTable.RowDatas);
+            model.Serialization(LogTable.RowDatas.Select(i => (i as LogData) ?? new LogData()).ToList());
             model.Save();
 
             var res = await LoadAsync();
@@ -277,7 +278,7 @@ namespace TigerSan.Test.ViewModels
                 return new CsvResult(CsvResultType.Error, res.Message);
             }
 
-            LogTable.RowDatas = model.Deserialization();
+            LogTable.RowDatas = new ObservableCollection<object>(model.Deserialization().Select(i => (i as object) ?? new object()).ToList());
 
             return new CsvResult();
         }
