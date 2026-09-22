@@ -66,6 +66,7 @@
                         Margin="{StaticResource Card.Margin}">
                         <TextBox
                             x:Name="source"
+                            AcceptsReturn="True"
                             Text="{Binding Source}"/>
                     </ScrollViewer>
                 </Grid>
@@ -90,6 +91,7 @@
                         <TextBox
                             x:Name="target"
                             IsReadOnly="True"
+                            AcceptsReturn="True"
                             Text="{Binding Target}"/>
                     </ScrollViewer>
                 </Grid>
@@ -114,6 +116,7 @@
                         <TextBox
                             x:Name="output"
                             IsReadOnly="True"
+                            AcceptsReturn="True"
                             Text="{Binding Output}"/>
                     </ScrollViewer>
                 </Grid>
